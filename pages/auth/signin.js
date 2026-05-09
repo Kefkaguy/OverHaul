@@ -50,7 +50,7 @@ export default function SignIn() {
           '--mute': '#778DA9',
           '--bone': '#E0E1DD',
         }}
-        className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4"
+        className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4 py-10"
       >
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -66,7 +66,7 @@ export default function SignIn() {
             <span className="font-sans text-[18px] font-semibold tracking-[-0.02em] text-[var(--text)]">OverHaul</span>
           </div>
 
-          <h1 className="mb-1 font-sans text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-[var(--text)]">
+          <h1 className="mb-1 font-sans text-[clamp(28px,8vw,32px)] font-semibold leading-[1.1] tracking-[-0.03em] text-[var(--text)]">
             Welcome back
           </h1>
           <p className="mb-8 text-sm text-[var(--text-mute)]">Sign in to report problems and track fixes.</p>

@@ -262,8 +262,8 @@ function AppShell({ view, setView, activeProblemId, goToProblem, tweaks, onGoHom
 
   if (loading) {
     return (
-      <div className="grid min-h-screen grid-cols-[240px_1fr] bg-[var(--bg)] text-[var(--text)]">
-        <div className="sticky top-0 h-screen border-r border-[var(--line)] bg-[var(--bg)]" />
+      <div className="grid min-h-screen grid-cols-1 bg-[var(--bg)] text-[var(--text)] lg:grid-cols-[240px_1fr]">
+        <div className="hidden border-r border-[var(--line)] bg-[var(--bg)] lg:sticky lg:top-0 lg:block lg:h-screen" />
         <div className="flex items-center justify-center">
           <motion.div
             animate={{ opacity: [0.3, 1, 0.3] }}
@@ -278,11 +278,11 @@ function AppShell({ view, setView, activeProblemId, goToProblem, tweaks, onGoHom
   }
 
   return (
-    <div className="grid min-h-screen grid-cols-[240px_1fr] bg-[var(--bg)] text-[var(--text)]">
+    <div className="grid min-h-screen grid-cols-1 bg-[var(--bg)] pb-20 text-[var(--text)] lg:grid-cols-[240px_1fr] lg:pb-0">
       <Sidebar view={view} setView={setView} onGoHome={onGoHome} tags={tags} />
       <div className="flex min-w-0 flex-col">
         <TopBar search={search} setSearch={setSearch} setView={setView} />
-        <main className="min-w-0 flex-1 px-9 pb-[60px]">
+        <main className="min-w-0 flex-1 px-4 pb-[60px] sm:px-6 lg:px-9">
           <AnimatePresence mode="wait">
             <motion.div
               key={view + (view === 'detail' ? `-${activeProblemId}` : '')}
@@ -351,11 +351,11 @@ function Sidebar({ view, setView, onGoHome, tags }) {
       initial={{ x: -40, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: EASE_OUT }}
-      className="sticky top-0 flex h-screen flex-col border-r border-[var(--line)] bg-[var(--bg)] px-4 py-[22px]"
+      className="fixed inset-x-0 bottom-0 z-50 flex h-auto items-center gap-2 border-t border-[var(--line)] bg-[var(--bg)] px-3 py-2 lg:sticky lg:inset-auto lg:top-0 lg:z-auto lg:h-screen lg:flex-col lg:items-stretch lg:border-r lg:border-t-0 lg:px-4 lg:py-[22px]"
     >
       <div
         onClick={() => (onGoHome ? onGoHome() : setView('landing'))}
-        className="mb-7 flex cursor-pointer items-center gap-2.5 px-2 py-1.5"
+        className="mb-7 hidden cursor-pointer items-center gap-2.5 px-2 py-1.5 lg:flex"
       >
         <motion.div
           whileHover={{ rotate: -6, scale: 1.08 }}
@@ -372,13 +372,13 @@ function Sidebar({ view, setView, onGoHome, tags }) {
       <MotionButton
         whileHover={buttonHover}
         whileTap={buttonTap}
-        className={cx(signalButton, 'mb-[18px] w-full justify-center px-4 py-[13px] text-sm')}
+        className={cx(signalButton, 'mb-0 shrink-0 justify-center px-3 py-[11px] text-sm sm:px-4 lg:mb-[18px] lg:w-full lg:py-[13px]')}
         onClick={() => setView('submit')}
       >
-        <Icon.Plus /> Report a problem
+        <Icon.Plus /> <span className="hidden sm:inline">Report a problem</span><span className="sm:hidden">Report</span>
       </MotionButton>
 
-      <nav className="relative flex flex-col gap-0.5">
+      <nav className="relative flex min-w-0 flex-1 gap-0.5 lg:flex-col">
         {items.map((it) => {
           const active = view === it.k || (it.k === 'feed' && view === 'detail');
           return (
@@ -386,7 +386,7 @@ function Sidebar({ view, setView, onGoHome, tags }) {
               key={it.k}
               onClick={() => setView(it.k)}
               className={cx(
-                'relative flex cursor-pointer appearance-none items-center gap-3 rounded-[9px] border-0 px-3 py-[11px] text-left font-[var(--sans)] text-sm font-medium leading-none transition-colors duration-150',
+                'relative flex flex-1 cursor-pointer appearance-none items-center justify-center gap-2 rounded-[9px] border-0 px-2 py-[11px] text-left font-[var(--sans)] text-sm font-medium leading-none transition-colors duration-150 sm:gap-3 lg:flex-none lg:justify-start lg:px-3',
                 active ? 'text-[var(--text)]' : 'bg-transparent text-[var(--text-mute)] hover:text-[var(--text)]',
               )}
             >
@@ -404,7 +404,7 @@ function Sidebar({ view, setView, onGoHome, tags }) {
         })}
       </nav>
 
-      <div className="mt-7 px-3">
+      <div className="mt-7 hidden px-3 lg:block">
         <div className={cx(eyebrow, 'mb-3 text-[10px]')}>Trending tags</div>
         {tags.length > 0 && (
           <StaggerGroup className="flex flex-wrap gap-[5px]" stagger={0.05} delay={0.3}>
@@ -422,7 +422,7 @@ function Sidebar({ view, setView, onGoHome, tags }) {
         )}
       </div>
 
-      <div className={`${mono} mt-auto px-3 text-[11px] tracking-[0.04em] text-[var(--text-mute)]`}>
+      <div className={`${mono} mt-auto hidden px-3 text-[11px] tracking-[0.04em] text-[var(--text-mute)] lg:block`}>
         v0.4.1 · ALL SYSTEMS GO
       </div>
     </motion.aside>
@@ -448,11 +448,11 @@ function TopBar({ search, setSearch, setView }) {
       initial={{ y: -40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: EASE_OUT, delay: 0.1 }}
-      className="sticky top-0 z-40 flex items-center gap-[18px] border-b border-[var(--line)] bg-[var(--bg)] px-9 py-5"
+      className="sticky top-0 z-40 flex items-center gap-3 border-b border-[var(--line)] bg-[var(--bg)] px-4 py-4 sm:gap-[18px] sm:px-6 lg:px-9 lg:py-5"
     >
       <motion.div
         whileFocusWithin={{ borderColor: 'var(--text)' }}
-        className="flex max-w-[540px] flex-1 items-center gap-2.5 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3.5 py-[11px] transition-colors duration-150 focus-within:border-[var(--text-mute)]"
+        className="flex min-w-0 max-w-[540px] flex-1 items-center gap-2.5 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3.5 py-[11px] transition-colors duration-150 focus-within:border-[var(--text-mute)]"
       >
         <span className="text-[var(--text-mute)]">
           <Icon.Search />
@@ -463,11 +463,11 @@ function TopBar({ search, setSearch, setView }) {
           placeholder="Search problems, solutions, tags..."
           className="w-full border-0 bg-transparent font-[var(--sans)] text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-mute)]"
         />
-        <span className={`${mono} rounded-[5px] border border-[var(--line-2)] px-[7px] py-[3px] text-[11px] text-[var(--text-mute)]`}>
+        <span className={`${mono} hidden rounded-[5px] border border-[var(--line-2)] px-[7px] py-[3px] text-[11px] text-[var(--text-mute)] sm:inline`}>
           ⌘K
         </span>
       </motion.div>
-      <div className="flex-1" />
+      <div className="hidden flex-1 sm:block" />
       <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={cx(ghostButton, 'px-3 py-[9px] text-[13px]')}>
         <Icon.Bell />
       </MotionButton>
@@ -529,7 +529,7 @@ function FeedScreen({ problems, categories, activeCat, setActiveCat, goToProblem
   });
 
   return (
-    <div className="grid grid-cols-[1fr_320px] gap-8 pt-7">
+    <div className="grid grid-cols-1 gap-8 pt-7 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="min-w-0">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -545,7 +545,7 @@ function FeedScreen({ problems, categories, activeCat, setActiveCat, goToProblem
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: EASE_PUNCH, delay: 0.05 }}
-              className={cx(display, 'm-0 text-[56px] font-semibold')}
+              className={cx(display, 'm-0 text-[clamp(40px,10vw,56px)] font-semibold')}
             >
               What's <em className="italic text-[var(--signal)]">broken</em> today.
             </motion.h1>
@@ -629,7 +629,7 @@ function FeedScreen({ problems, categories, activeCat, setActiveCat, goToProblem
         </StaggerGroup>
       </div>
 
-      <aside className="flex flex-col gap-4 pt-[84px]">
+      <aside className="flex flex-col gap-4 xl:pt-[84px]">
         <WeeklyImpactCard />
 
         <RailCard title="Trending devs" eyebrow="Build" delay={0.25}>
@@ -725,7 +725,7 @@ function ProblemCard({ p, index, voted, onVote, onOpen, variant }) {
     <motion.article
       whileHover={{ y: -2 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className="grid cursor-pointer grid-cols-[74px_1fr] gap-[18px] rounded-[var(--radius)] border border-[var(--line)] bg-[var(--surface)] px-[var(--pad-x)] py-[var(--pad-y)] transition-colors duration-150 hover:border-[var(--line-2)]"
+      className="grid cursor-pointer grid-cols-1 gap-4 rounded-[var(--radius)] border border-[var(--line)] bg-[var(--surface)] px-[var(--pad-x)] py-[var(--pad-y)] transition-colors duration-150 hover:border-[var(--line-2)] sm:grid-cols-[74px_1fr] sm:gap-[18px]"
       onClick={onOpen}
     >
       <motion.button
@@ -737,7 +737,7 @@ function ProblemCard({ p, index, voted, onVote, onOpen, variant }) {
           onVote();
         }}
         className={cx(
-          'flex min-h-[76px] cursor-pointer appearance-none flex-col items-center justify-center gap-1 rounded-xl border px-0 py-3 transition-colors duration-200',
+          'flex min-h-0 cursor-pointer appearance-none items-center justify-center gap-2 rounded-xl border px-3 py-3 transition-colors duration-200 sm:min-h-[76px] sm:flex-col sm:gap-1 sm:px-0',
           voted
             ? 'border-[var(--signal)] bg-[var(--signal)] text-[var(--signal-ink)]'
             : 'border-[var(--line-2)] bg-transparent text-[var(--text)]',
@@ -752,14 +752,14 @@ function ProblemCard({ p, index, voted, onVote, onOpen, variant }) {
       </motion.button>
 
       <div className="min-w-0">
-        <div className="mb-2.5 flex items-center gap-2.5 text-[11px] text-[var(--text-mute)]">
+        <div className="mb-2.5 flex flex-wrap items-center gap-2.5 text-[11px] text-[var(--text-mute)]">
           <span className={`${mono} font-semibold text-[var(--text)]`}>#{String(index).padStart(3, '0')}</span>
           <span className="h-[3px] w-[3px] rounded-full bg-[var(--text-mute)]" />
           <span className="font-semibold text-[var(--text)]">{p.category}</span>
           <span className="inline-flex items-center gap-1">
             <Icon.Pin /> {p.location}
           </span>
-          <span className={`${mono} ml-auto text-[var(--signal)]`}>{p.voteVelocity}</span>
+          <span className={`${mono} sm:ml-auto text-[var(--signal)]`}>{p.voteVelocity}</span>
         </div>
 
         <h3 className="m-0 mb-3 font-[var(--sans)] text-[22px] font-semibold leading-[1.22] tracking-[-0.02em] [text-wrap:pretty]">
@@ -780,7 +780,7 @@ function ProblemCard({ p, index, voted, onVote, onOpen, variant }) {
           </div>
         )}
 
-        <div className="flex items-center gap-4 text-xs text-[var(--text-mute)]">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--text-mute)] sm:gap-4">
           <span>
             by <span className="font-medium text-[var(--text)]">@{p.reporter.handle}</span> · {p.reportedAgo}
           </span>
@@ -790,7 +790,7 @@ function ProblemCard({ p, index, voted, onVote, onOpen, variant }) {
           <span
             className={cx(
               mono,
-              'ml-auto font-semibold tracking-[0.04em]',
+              'font-semibold tracking-[0.04em] sm:ml-auto',
               p.solutionsCount > 0 ? 'text-[var(--signal)]' : 'text-[var(--text-mute)]',
             )}
           >
@@ -884,7 +884,7 @@ function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, o
         ← Back to feed
       </motion.button>
 
-      <div className="grid grid-cols-[1fr_340px] gap-9">
+      <div className="grid grid-cols-1 gap-9 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0">
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -941,7 +941,7 @@ function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, o
             </StaggerGroup>
           </motion.div>
 
-          <StaggerGroup className="mb-9 grid grid-cols-4 overflow-hidden rounded-[14px] border border-[var(--line)]" stagger={0.08} delay={0.2}>
+          <StaggerGroup className="mb-9 grid grid-cols-2 overflow-hidden rounded-[14px] border border-[var(--line)] md:grid-cols-4" stagger={0.08} delay={0.2}>
             {[
               [p.affected, 'Affected'],
               [p.duplicates, 'Similar reports'],
@@ -951,7 +951,7 @@ function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, o
               <motion.div
                 key={label}
                 variants={staggerItem}
-                className={cx('bg-[var(--surface)] px-[22px] py-5', i < 3 && 'border-r border-[var(--line)]')}
+                className={cx('bg-[var(--surface)] px-[18px] py-5 sm:px-[22px]', i < 3 && 'md:border-r md:border-[var(--line)]', i < 2 && 'border-b border-[var(--line)] md:border-b-0')}
               >
                 <div className={cx(display, num, 'mb-1 text-[26px] font-bold tracking-[-0.02em]')}>
                   <CountUp value={n} duration={1.4} />
@@ -963,7 +963,7 @@ function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, o
             ))}
           </StaggerGroup>
 
-          <div className="mb-[18px] flex items-baseline justify-between">
+          <div className="mb-[18px] flex flex-wrap items-baseline justify-between gap-3">
             <h2 className={cx(display, 'm-0 text-[32px] font-semibold')}>
               Who's <em className="italic text-[var(--signal)]">building</em>
             </h2>
@@ -992,7 +992,7 @@ function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, o
                   animate={{ scale: 1, y: 0 }}
                   exit={{ scale: 0.94, y: 20 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  className={cx(card, 'w-full max-w-[480px] p-7')}
+                  className={cx(card, 'max-h-[calc(100vh-32px)] w-full max-w-[480px] overflow-y-auto p-5 sm:p-7')}
                 >
                   <h3 className={cx(display, 'm-0 mb-1 text-[22px]')}>Claim this problem</h3>
                   <p className="mb-5 text-[13px] text-[var(--text-mute)]">Post a plan in public and start building.</p>
@@ -1019,7 +1019,7 @@ function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, o
                     </div>
                     <div>
                       <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">Stage</label>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         {['Planning', 'Prototype', 'Building', 'Beta'].map((s) => (
                           <button
                             key={s}
@@ -1038,7 +1038,7 @@ function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, o
                       </div>
                     </div>
                     {claimError && <p className="text-[13px] text-[#FF4D2E]">{claimError}</p>}
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row">
                       <MotionButton
                         whileHover={buttonHover}
                         whileTap={buttonTap}
@@ -1088,13 +1088,13 @@ function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, o
                   key={solution.id}
                   variants={staggerItem}
                   whileHover={{ y: -3, borderColor: 'var(--line-2)' }}
-                  className={cx(card, 'flex items-center gap-[18px] p-5')}
+                  className={cx(card, 'flex flex-col gap-[18px] p-5 sm:flex-row sm:items-center')}
                 >
                   <div className="grid h-12 w-12 shrink-0 place-items-center rounded-[10px] bg-[var(--signal)] font-[var(--sans)] text-lg font-bold leading-none tracking-[-0.02em] text-[var(--signal-ink)]">
                     {solution.name[0]}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center gap-2.5">
+                    <div className="mb-1 flex flex-wrap items-center gap-2.5">
                       <span className="font-[var(--sans)] text-[17px] font-semibold leading-none tracking-[-0.01em]">
                         {solution.name}
                       </span>
@@ -1122,7 +1122,7 @@ function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, o
           </h2>
 
           {/* Comment form */}
-          <form onSubmit={submitComment} className="mb-5 flex gap-3">
+          <form onSubmit={submitComment} className="mb-5 flex flex-col gap-3 sm:flex-row">
             <input
               ref={commentInputRef}
               value={commentText}
@@ -1168,7 +1168,7 @@ function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, o
           initial={{ opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: EASE_OUT, delay: 0.25 }}
-          className="sticky top-[92px] flex flex-col gap-4 self-start"
+          className="flex flex-col gap-4 self-start xl:sticky xl:top-[92px]"
         >
           <div className={cx(card, 'p-6')}>
             <motion.button
@@ -1531,7 +1531,7 @@ function SubmitScreen({ setView, onPublish, submitCategories }) {
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-9 flex justify-between">
+      <div className="mt-9 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
         <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={ghostButton} onClick={() => (step > 1 ? setStep(step - 1) : setView('feed'))}>
           {step === 1 ? 'Cancel' : '← Back'}
         </MotionButton>
@@ -1591,13 +1591,13 @@ function HubScreen({ problems, solutions, stats, goToProblem }) {
         and ship in public.
       </p>
 
-      <div className="relative mb-7 flex border-b border-[var(--line)]">
+      <div className="relative mb-7 flex overflow-x-auto border-b border-[var(--line)]">
         {hubTabs.map(([key, label, count]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
             className={cx(
-              'relative flex cursor-pointer appearance-none items-center gap-2 border-0 bg-transparent px-[22px] py-3.5 font-[var(--sans)] text-sm font-semibold leading-none transition-colors duration-150',
+              'relative flex shrink-0 cursor-pointer appearance-none items-center gap-2 border-0 bg-transparent px-4 py-3.5 font-[var(--sans)] text-sm font-semibold leading-none transition-colors duration-150 sm:px-[22px]',
               tab === key ? 'text-[var(--text)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]',
             )}
           >
@@ -1623,7 +1623,7 @@ function HubScreen({ problems, solutions, stats, goToProblem }) {
           transition={{ duration: 0.3, ease: EASE_OUT }}
         >
           {tab === 'claimable' && (
-            <StaggerGroup className="grid grid-cols-2 gap-4" stagger={0.06}>
+            <StaggerGroup className="grid grid-cols-1 gap-4 lg:grid-cols-2" stagger={0.06}>
               {problems
                 .filter((problem) => problem.solutionsCount === 0)
                 .map((problem) => (
@@ -1641,7 +1641,7 @@ function HubScreen({ problems, solutions, stats, goToProblem }) {
                     <h3 className="m-0 mb-4 font-[var(--sans)] text-[22px] font-semibold leading-[1.18] tracking-[-0.02em]">
                       {problem.title}
                     </h3>
-                    <div className="mb-4 flex items-baseline gap-[18px]">
+                    <div className="mb-4 flex flex-wrap items-baseline gap-[18px]">
                       <div>
                         <div className={cx(display, num, 'text-[30px] font-bold tracking-[-0.03em]')}>
                           <CountUp value={problem.votes.toLocaleString()} duration={1.4} />
@@ -1681,7 +1681,7 @@ function HubScreen({ problems, solutions, stats, goToProblem }) {
                     key={solution.id}
                     variants={staggerItem}
                     whileHover={{ y: -2 }}
-                    className={cx(card, 'flex items-center gap-[18px] p-6')}
+                    className={cx(card, 'flex flex-col gap-[18px] p-5 sm:flex-row sm:items-center sm:p-6')}
                   >
                     <motion.div
                       whileHover={{ rotate: -4, scale: 1.05 }}
@@ -1691,7 +1691,7 @@ function HubScreen({ problems, solutions, stats, goToProblem }) {
                       {solution.name[0]}
                     </motion.div>
                     <div className="min-w-0 flex-1">
-                      <div className="mb-1 flex items-center gap-2.5">
+                      <div className="mb-1 flex flex-wrap items-center gap-2.5">
                         <span className="font-[var(--sans)] text-[19px] font-bold leading-none tracking-[-0.02em]">
                           {solution.name}
                         </span>
@@ -1707,7 +1707,7 @@ function HubScreen({ problems, solutions, stats, goToProblem }) {
                         </div>
                       )}
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                       <div className={`${num} font-[var(--sans)] text-[26px] font-bold leading-none tracking-[-0.02em]`}>
                         <CountUp value={solution.supporters} duration={1.4} />
                       </div>
@@ -1724,7 +1724,7 @@ function HubScreen({ problems, solutions, stats, goToProblem }) {
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4, ease: EASE_OUT }}
-              className="rounded-[14px] border border-dashed border-[var(--line-2)] p-[60px] text-center text-[var(--text-mute)]"
+              className="rounded-[14px] border border-dashed border-[var(--line-2)] p-8 text-center text-[var(--text-mute)] sm:p-[60px]"
             >
               <CountUp value={shippedCount} duration={1.6} className="font-bold text-[var(--text)]" /> solutions shipped this year. View archive coming soon.
             </motion.div>
@@ -1778,20 +1778,20 @@ function ProfileScreen({ goToProblem, setView }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: EASE_OUT }}
-        className="mb-9 flex items-center gap-6"
+        className="mb-9 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-6"
       >
         <motion.div
           initial={{ scale: 0.6, rotate: -10 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.1 }}
           whileHover={{ rotate: 6, scale: 1.05 }}
-          className="grid h-24 w-24 cursor-pointer place-items-center rounded-full bg-[linear-gradient(135deg,#FFD60A,#FF4D2E)] font-[var(--sans)] text-[38px] font-bold leading-none tracking-[-0.02em] text-[#0D1B2A]"
+          className="grid h-20 w-20 cursor-pointer place-items-center rounded-full bg-[linear-gradient(135deg,#FFD60A,#FF4D2E)] font-[var(--sans)] text-[32px] font-bold leading-none tracking-[-0.02em] text-[#0D1B2A] sm:h-24 sm:w-24 sm:text-[38px]"
         >
           {user.initials}
         </motion.div>
         <div>
           <div className={cx(eyebrow, 'mb-2')}>You · @{user.handle}</div>
-          <h1 className={cx(display, 'm-0 text-[56px] font-semibold')}>{user.name}</h1>
+          <h1 className={cx(display, 'm-0 text-[clamp(40px,10vw,56px)] font-semibold')}>{user.name}</h1>
           <div className="mt-2 text-sm text-[var(--text-mute)]">
             {user.joinedLabel} · {user.location} · {user.bio}
           </div>
@@ -1799,7 +1799,7 @@ function ProfileScreen({ goToProblem, setView }) {
       </motion.div>
 
       <StaggerGroup
-        className="mb-9 grid grid-cols-5 overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--surface)]"
+        className="mb-9 grid grid-cols-2 overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--surface)] md:grid-cols-5"
         stagger={0.07}
         delay={0.2}
       >
@@ -1807,7 +1807,7 @@ function ProfileScreen({ goToProblem, setView }) {
           <motion.div
             key={label}
             variants={staggerItem}
-            className={cx('px-[22px] py-6', i < 4 && 'border-r border-[var(--line)]')}
+            className={cx('px-[18px] py-6 sm:px-[22px]', i < 4 && 'md:border-r md:border-[var(--line)]', i < 4 && 'border-b border-[var(--line)] md:border-b-0')}
           >
             <div className={cx(display, num, 'text-4xl font-bold tracking-[-0.03em]', i === 3 ? 'text-[var(--signal)]' : 'text-[var(--text)]')}>
               <CountUp value={value} duration={1.5} />
@@ -1817,7 +1817,7 @@ function ProfileScreen({ goToProblem, setView }) {
         ))}
       </StaggerGroup>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div>
           <h2 className={cx(display, 'm-0 mb-4 text-[26px] font-semibold')}>Your reports</h2>
           <StaggerGroup className="flex flex-col gap-2.5" stagger={0.08} delay={0.3}>
@@ -1835,7 +1835,7 @@ function ProfileScreen({ goToProblem, setView }) {
                 onClick={() => goToProblem(prob.id)}
               >
                 <div className="mb-2 font-[var(--sans)] text-base font-semibold leading-[1.3]">{prob.title}</div>
-                <div className="flex gap-3.5 text-xs text-[var(--text-mute)]">
+                <div className="flex flex-wrap gap-3.5 text-xs text-[var(--text-mute)]">
                   <span>{prob.category}</span>
                   <span className={`${num} font-semibold text-[var(--signal)]`}>
                     {prob.votes.toLocaleString()} ↑
@@ -1863,7 +1863,7 @@ function ProfileScreen({ goToProblem, setView }) {
                 key={i}
                 variants={staggerItem}
                 whileHover={{ x: 4 }}
-                className="flex gap-3 border-b border-[var(--line)] py-3"
+                className="flex flex-wrap gap-3 border-b border-[var(--line)] py-3 sm:flex-nowrap"
               >
                 <div className={`${mono} min-w-[70px] pt-0.5 text-[11px] tracking-[0.06em] text-[var(--signal)]`}>
                   {action.toUpperCase()}

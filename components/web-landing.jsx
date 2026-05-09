@@ -236,18 +236,18 @@ export function LandingPage({ onEnter }) {
         transition={{ duration: 0.6, ease: EASE_OUT }}
         className="sticky top-0 z-50 border-b border-[var(--line)] [background:color-mix(in_srgb,var(--bg)_78%,transparent)] [backdrop-filter:blur(20px)_saturate(180%)] [-webkit-backdrop-filter:blur(20px)_saturate(180%)]"
       >
-        <div className="flex items-center justify-between border-b border-[var(--line)] bg-[var(--surface)] px-10 py-1.5 font-[var(--mono)] text-[11px] uppercase tracking-[0.08em] text-[var(--text-mute)]">
+        <div className="flex items-center justify-center border-b border-[var(--line)] bg-[var(--surface)] px-4 py-1.5 font-[var(--mono)] text-[10px] uppercase tracking-[0.08em] text-[var(--text-mute)] sm:justify-between sm:px-6 sm:text-[11px] lg:px-10">
           <div className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 animate-[oh-pulse_2s_ease-in-out_infinite] rounded-full bg-[var(--signal)] shadow-[0_0_0_3px_rgba(255,214,10,0.2),0_0_12px_var(--signal)]" />
             <span>Live · 12,847 problems · 318 solutions shipped</span>
           </div>
-          <div className="flex gap-[18px]">
+          <div className="hidden gap-[18px] sm:flex">
             <span>EN</span>
             <span className="text-[var(--text)]">Los Angeles ↗</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-10 px-10 py-3.5 ">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6 lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-10 lg:px-10">
           <a href="/" className="flex items-center gap-3 text-[var(--text)] no-underline">
             <motion.div
               whileHover={{ rotate: 6, scale: 1.08 }}
@@ -264,12 +264,12 @@ export function LandingPage({ onEnter }) {
             </div>
           </a>
 
-          <div className="col-start-3 flex items-center gap-2.5">
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-2.5 lg:col-start-3">
             <MotionButton
               whileHover={buttonHover}
               whileTap={buttonTap}
               aria-label="Search problems"
-              className="flex min-w-[200px] cursor-pointer items-center gap-2.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-[13px] text-[var(--text-mute)] transition-colors duration-150 hover:border-[var(--text-mute)]"
+              className="hidden min-w-[200px] cursor-pointer items-center gap-2.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-[13px] text-[var(--text-mute)] transition-colors duration-150 hover:border-[var(--text-mute)] md:flex"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
@@ -329,7 +329,7 @@ export function LandingPage({ onEnter }) {
               <MotionButton
                 whileHover={buttonHover}
                 whileTap={buttonTap}
-                className={`${ghostButton} px-3.5 py-[9px] text-[15px]`}
+                className={`${ghostButton} px-3 py-[9px] text-[13px] sm:px-3.5 sm:text-[15px]`}
                 onClick={() => router.push('/auth/signin')}
               >
                 Sign in
@@ -339,16 +339,16 @@ export function LandingPage({ onEnter }) {
             <MotionButton
               whileHover={buttonHover}
               whileTap={buttonTap}
-              className={`${signalButton} px-4 py-2.5 text-[13px] text-[#0D1B2A] shadow-[0_8px_24px_rgba(255,214,10,0.25),inset_0_-2px_0_rgba(0,0,0,0.12)]`}
+              className={`${signalButton} px-3 py-2.5 text-[13px] text-[#0D1B2A] shadow-[0_8px_24px_rgba(255,214,10,0.25),inset_0_-2px_0_rgba(0,0,0,0.12)] sm:px-4`}
               onClick={() => router.push('/problems')}
             >
-              Open the platform <Icon.Arrow />
+              <span className="hidden sm:inline">Open the platform</span><span className="sm:hidden">Open</span> <Icon.Arrow />
             </MotionButton>
           </div>
         </div>
       </motion.header>
 
-      <section ref={heroRef} className="relative px-10 pb-10 pt-20">
+      <section ref={heroRef} className="relative px-4 pb-10 pt-12 sm:px-6 sm:pt-16 lg:px-10 lg:pt-20">
         <div className={container}>
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -359,7 +359,7 @@ export function LandingPage({ onEnter }) {
             <span className="text-[var(--signal)]">⬤</span> Live · 12,847 problems reported this year
           </motion.div>
 
-          <div className="grid grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] items-center gap-12">
+          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] lg:gap-12">
             <motion.div style={{ y: heroHeadlineY }}>
               <h1 className={`${display} m-0 text-[clamp(72px,10vw,150px)] font-semibold tracking-[-0.045em]`}>
                 <motion.span
@@ -395,14 +395,14 @@ export function LandingPage({ onEnter }) {
               initial={{ opacity: 0, scale: 0.92, rotate: 2 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               transition={{ duration: 1, ease: EASE_OUT, delay: 0.5 }}
-              className="relative min-h-[430px] overflow-hidden rounded-[28px] border border-white/15 bg-[rgba(255,214,10,0.6)] shadow-[0_34px_100px_rgba(0,0,0,0.38),0_0_80px_rgba(255,214,10,0.13)]"
+              className="relative min-h-[320px] overflow-hidden rounded-[20px] border border-white/15 bg-[rgba(255,214,10,0.6)] shadow-[0_34px_100px_rgba(0,0,0,0.38),0_0_80px_rgba(255,214,10,0.13)] sm:min-h-[430px] sm:rounded-[28px]"
             >
-              <div className="absolute inset-[18px] grid grid-rows-[auto_1fr_auto] rounded-[20px] bg-[rgba(7,17,28,0.82)] p-6 text-[#E0E1DD] [backdrop-filter:blur(16px)_saturate(160%)]">
+              <div className="absolute inset-3 grid grid-rows-[auto_1fr_auto] rounded-[16px] bg-[rgba(7,17,28,0.82)] p-4 text-[#E0E1DD] [backdrop-filter:blur(16px)_saturate(160%)] sm:inset-[18px] sm:rounded-[20px] sm:p-6">
                 <div className={`${mono} text-xs uppercase tracking-[0.14em] text-[var(--signal)]`}>
                   Civic signal map
                 </div>
                 <motion.div
-                  className="grid grid-cols-2 gap-3 self-center"
+                  className="grid grid-cols-1 gap-3 self-center min-[420px]:grid-cols-2"
                   initial="hidden"
                   animate="show"
                   variants={{
@@ -433,14 +433,14 @@ export function LandingPage({ onEnter }) {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.7 }}
-            className="mt-[42px] grid grid-cols-2 items-end gap-[60px]"
+            className="mt-[42px] grid grid-cols-1 items-end gap-6 lg:grid-cols-2 lg:gap-[60px]"
           >
             <p className="m-0 max-w-[520px] font-[var(--sans)] text-[22px] font-normal leading-[1.35] text-[var(--text)] [text-wrap:pretty]">
               A civic platform where communities{' '}
               <em className="italic text-[var(--signal)]">name</em> what's broken, vote on what matters,
               and hand it to people who can actually fix it. Then watch it get fixed.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-wrap gap-3 lg:justify-end">
               <MotionButton
                 whileHover={buttonHover}
                 whileTap={buttonTap}
@@ -481,7 +481,7 @@ export function LandingPage({ onEnter }) {
       </Reveal>
 
       {/* How it works */}
-      <section className="px-10 py-[120px]">
+      <section className="px-4 py-20 sm:px-6 lg:px-10 lg:py-[120px]">
         <div className={container}>
           <Reveal className={`${eyebrow} mb-6`}>How it works</Reveal>
           <Reveal delay={0.1}>
@@ -491,14 +491,14 @@ export function LandingPage({ onEnter }) {
             </h2>
           </Reveal>
 
-          <StaggerGroup className="grid grid-cols-4 border-t border-[var(--line-2)]" stagger={0.12}>
+          <StaggerGroup className="grid grid-cols-1 border-t border-[var(--line-2)] sm:grid-cols-2 lg:grid-cols-4" stagger={0.12}>
             {steps.map((step, i) => (
               <motion.div
                 key={step.n}
                 variants={staggerItem}
                 whileHover={{ y: -4 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                className={`px-7 pt-10 ${i < steps.length - 1 ? 'border-r border-[var(--line)]' : ''}`}
+                className={`px-0 pt-8 sm:px-5 lg:px-7 lg:pt-10 ${i < steps.length - 1 ? 'lg:border-r lg:border-[var(--line)]' : ''}`}
               >
                 <div className={`${mono} ${num} mb-9 text-[13px] tracking-[0.05em] text-[var(--signal)]`}>
                   {step.n}
@@ -514,12 +514,12 @@ export function LandingPage({ onEnter }) {
       </section>
 
       {/* Stats slab */}
-      <section className="bg-[var(--signal)] px-10 py-20 text-[var(--signal-ink)]">
+      <section className="bg-[var(--signal)] px-4 py-16 text-[var(--signal-ink)] sm:px-6 lg:px-10 lg:py-20">
         <div className={container}>
           <Reveal className={`${mono} mb-[30px] text-xs font-medium uppercase leading-none tracking-[0.18em] opacity-65`}>
             Year one · public scoreboard
           </Reveal>
-          <StaggerGroup className="grid grid-cols-4 gap-[30px]" stagger={0.1}>
+          <StaggerGroup className="grid grid-cols-1 gap-[30px] sm:grid-cols-2 lg:grid-cols-4" stagger={0.1}>
             {scoreboard.map(([n, label]) => (
               <motion.div key={label} variants={staggerItem} className="border-t-2 border-[var(--signal-ink)] pt-[18px]">
                 <div className={`${display} ${num} text-[clamp(56px,7vw,96px)] font-bold tracking-[-0.04em]`}>
@@ -535,8 +535,8 @@ export function LandingPage({ onEnter }) {
       
 
       {/* For developers */}
-      <section className="border-y border-[var(--line)] bg-[var(--bg-2)] px-10 py-[120px]">
-        <div className={`${container} grid grid-cols-2 items-center gap-20`}>
+      <section className="border-y border-[var(--line)] bg-[var(--bg-2)] px-4 py-20 sm:px-6 lg:px-10 lg:py-[120px]">
+        <div className={`${container} grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-20`}>
           <div>
             <Reveal className={`${eyebrow} mb-6`}>For developers + builders</Reveal>
             <Reveal delay={0.08}>
@@ -554,7 +554,7 @@ export function LandingPage({ onEnter }) {
             </Reveal>
           </div>
 
-          <StaggerGroup className="relative min-h-[380px]" stagger={0.15} amount={0.3}>
+          <StaggerGroup className="relative min-h-[360px] sm:min-h-[380px]" stagger={0.15} amount={0.3}>
             {devCards.map((card, i) => (
               <motion.div
                 key={card.t}
@@ -569,7 +569,7 @@ export function LandingPage({ onEnter }) {
                   },
                 }}
                 whileHover={{ y: -8, rotate: 0, scale: 1.02, zIndex: 20, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
-                className={`absolute w-[calc(100%-72px)] rounded-[14px] border border-[var(--line-2)] bg-[var(--surface)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.18)] ${card.className}`}
+                className={`absolute w-[calc(100%-90px)] rounded-[14px] border border-[var(--line-2)] bg-[var(--surface)] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.18)] sm:w-[calc(100%-72px)] sm:p-6 ${card.className}`}
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -603,10 +603,10 @@ export function LandingPage({ onEnter }) {
       </section>
 
       {/* Youth strip */}
-      <section className="px-10 py-[120px]">
+      <section className="px-4 py-20 sm:px-6 lg:px-10 lg:py-[120px]">
         <div className={container}>
           <Reveal className={`${eyebrow} mb-6`}>Youth Innovator Program</Reveal>
-          <div className="grid grid-cols-[1.2fr_1fr] items-start gap-20">
+          <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
             <Reveal delay={0.08}>
               <h2 className={`${display} m-0 text-[clamp(44px,5.5vw,84px)]`}>
                 We made room
@@ -645,7 +645,7 @@ export function LandingPage({ onEnter }) {
       </section>
 
       {/* CTA */}
-      <section className="bg-[var(--text)] px-10 py-[120px] text-left text-[var(--bg)]">
+      <section className="bg-[var(--text)] px-4 py-20 text-left text-[var(--bg)] sm:px-6 lg:px-10 lg:py-[120px]">
         <div className={container}>
           <Reveal y={48}>
             <h2 className={`${display} m-0 mb-10 text-[clamp(64px,10vw,156px)] font-semibold`}>
@@ -672,7 +672,7 @@ export function LandingPage({ onEnter }) {
               >
                 Report it now <Icon.Arrow />
               </MotionButton>
-              <span className={`${mono} ml-3 text-sm text-[var(--text-mute)]`}>
+              <span className={`${mono} text-sm text-[var(--text-mute)] sm:ml-3`}>
                 30 seconds · no account needed to start
               </span>
             </div>
@@ -681,13 +681,13 @@ export function LandingPage({ onEnter }) {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[var(--line)] p-10">
+      <footer className="border-t border-[var(--line)] p-4 sm:p-6 lg:p-10">
         <div className={`${container} flex flex-wrap items-center justify-between gap-4`}>
           <div className="font-[var(--sans)] text-[17px] font-semibold leading-none tracking-[-0.02em]">
             OverHaul ·{' '}
             <span className="font-normal text-[var(--text-mute)]">Don't complain. OverHaul.</span>
           </div>
-          <div className={`${mono} flex gap-6 text-xs text-[var(--text-mute)]`}>
+          <div className={`${mono} flex flex-wrap gap-4 text-xs text-[var(--text-mute)] sm:gap-6`}>
             <span>STATUS · ALL SYSTEMS GO</span>
             <span>v0.4.1</span>
             <span>© 2026</span>

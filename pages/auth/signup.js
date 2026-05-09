@@ -91,13 +91,13 @@ export default function SignUp() {
             <span className="font-sans text-[18px] font-semibold tracking-[-0.02em] text-[var(--text)]">OverHaul</span>
           </div>
 
-          <h1 className="mb-1 font-sans text-[32px] font-semibold leading-[1.1] tracking-[-0.03em] text-[var(--text)]">
+          <h1 className="mb-1 font-sans text-[clamp(28px,8vw,32px)] font-semibold leading-[1.1] tracking-[-0.03em] text-[var(--text)]">
             Join the platform
           </h1>
           <p className="mb-8 text-sm text-[var(--text-mute)]">Report what's broken. Back what gets built.</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">Full name</label>
                 <motion.input
