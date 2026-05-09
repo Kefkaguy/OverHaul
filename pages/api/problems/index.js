@@ -1,3 +1,4 @@
+import { getToken } from 'next-auth/jwt';
 import clientPromise from '../../../lib/mongodb';
 
 export default async function handler(req, res) {
@@ -11,6 +12,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     const { title, category, location, description, reporter } = req.body;
     const id = `user-${Date.now()}`;
     const newProblem = {
@@ -32,6 +34,15 @@ export default async function handler(req, res) {
       createdAt: new Date(),
     };
     await col.insertOne(newProblem);
+
+    // Track on the user's profile
+    if (token?.id) {
+      await db.collection('users').updateOne(
+        { id: token.id },
+        { $addToSet: { reportedProblemIds: id } }
+      );
+    }
+
     const { _id, ...safe } = newProblem;
     return res.status(201).json(safe);
   }

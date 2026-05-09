@@ -277,7 +277,12 @@ export function LandingPage({ onEnter }) {
               </kbd>
             </MotionButton>
 
-            <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={`${ghostButton} px-3.5 py-[9px] text-[15px]`}>
+            <MotionButton
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+              className={`${ghostButton} px-3.5 py-[9px] text-[15px]`}
+              onClick={() => router.push('/auth/signin')}
+            >
               Sign in
             </MotionButton>
 

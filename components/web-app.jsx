@@ -185,6 +185,33 @@ function AppShell({ view, setView, activeProblemId, goToProblem, tweaks, onGoHom
       .finally(() => setLoading(false));
   }, []);
 
+  // Persistent votes — load from DB, optimistic UI on toggle
+  const [userVotes, setUserVotes] = useState(new Set());
+  useEffect(() => {
+    fetch('/api/votes')
+      .then((r) => r.json())
+      .then((ids) => { if (Array.isArray(ids)) setUserVotes(new Set(ids)); })
+      .catch(() => {});
+  }, []);
+
+  const handleVoteToggle = async (problemId) => {
+    const wasVoted = userVotes.has(problemId);
+    // Optimistic
+    setUserVotes((prev) => { const n = new Set(prev); wasVoted ? n.delete(problemId) : n.add(problemId); return n; });
+    setProblems((prev) => prev.map((p) => p.id === problemId ? { ...p, votes: p.votes + (wasVoted ? -1 : 1) } : p));
+    try {
+      await fetch('/api/votes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ problemId }),
+      });
+    } catch {
+      // Revert on failure
+      setUserVotes((prev) => { const n = new Set(prev); wasVoted ? n.add(problemId) : n.delete(problemId); return n; });
+      setProblems((prev) => prev.map((p) => p.id === problemId ? { ...p, votes: p.votes + (wasVoted ? 1 : -1) } : p));
+    }
+  };
+
   const activeProblem = problems.find((p) => p.id === activeProblemId) || problems[0];
 
   const allCategories = [
@@ -273,6 +300,8 @@ function AppShell({ view, setView, activeProblemId, goToProblem, tweaks, onGoHom
                   goToProblem={goToProblem}
                   tweaks={tweaks}
                   developers={developers}
+                  userVotes={userVotes}
+                  onVoteToggle={handleVoteToggle}
                 />
               )}
               {view === 'detail' && activeProblem && (
@@ -281,6 +310,9 @@ function AppShell({ view, setView, activeProblemId, goToProblem, tweaks, onGoHom
                   problems={problems}
                   setView={setView}
                   goToProblem={goToProblem}
+                  userVotes={userVotes}
+                  onVoteToggle={handleVoteToggle}
+                  setSolutions={setSolutions}
                 />
               )}
               {view === 'submit' && (
@@ -470,12 +502,10 @@ function TopBar({ search, setSearch, setView }) {
   );
 }
 
-function FeedScreen({ problems, categories, activeCat, setActiveCat, goToProblem, tweaks, developers }) {
+function FeedScreen({ problems, categories, activeCat, setActiveCat, goToProblem, tweaks, developers, userVotes, onVoteToggle }) {
   const filtered = activeCat === 'all' ? problems : problems.filter((p) => p.category === activeCat);
-  const [voted, setVoted] = useState({});
   const [sort, setSort] = useState('hot');
 
-  const toggleVote = (id) => setVoted((v) => ({ ...v, [id]: !v[id] }));
   const sorted = [...filtered].sort((a, b) => {
     if (sort === 'hot') return b.votes - a.votes;
     if (sort === 'new') return a.reportedAgo.localeCompare(b.reportedAgo);
@@ -572,8 +602,8 @@ function FeedScreen({ problems, categories, activeCat, setActiveCat, goToProblem
                 <ProblemCard
                   p={problem}
                   index={i + 1}
-                  voted={!!voted[problem.id]}
-                  onVote={() => toggleVote(problem.id)}
+                  voted={userVotes.has(problem.id)}
+                  onVote={() => onVoteToggle(problem.id)}
                   onOpen={() => goToProblem(problem.id)}
                   variant={tweaks.variant}
                 />
@@ -626,14 +656,17 @@ function FeedScreen({ problems, categories, activeCat, setActiveCat, goToProblem
 }
 
 function WeeklyImpactCard() {
+  const { data: session } = useSession();
   const [items, setItems] = useState([]);
+  const handle = session?.user?.handle;
 
   useEffect(() => {
-    fetch('/api/users/jadak')
+    if (!handle) return;
+    fetch(`/api/users/${handle}`)
       .then((r) => r.json())
       .then((u) => { if (u.weeklyImpact) setItems(u.weeklyImpact); })
       .catch(() => {});
-  }, []);
+  }, [handle]);
 
   if (items.length === 0) return null;
 
@@ -672,7 +705,6 @@ function RailCard({ title, eyebrow: eb, children, delay = 0 }) {
 
 function ProblemCard({ p, index, voted, onVote, onOpen, variant }) {
   const minimal = variant === 'minimal';
-  const liveVotes = p.votes + (voted ? 1 : 0);
 
   return (
     <motion.article
@@ -700,7 +732,7 @@ function ProblemCard({ p, index, voted, onVote, onOpen, variant }) {
           <Icon.Up />
         </motion.span>
         <span className={`${num} font-[var(--sans)] text-base font-bold leading-none tracking-[-0.02em]`}>
-          <LiveNumber value={liveVotes} />
+          <LiveNumber value={p.votes} />
         </span>
       </motion.button>
 
@@ -755,25 +787,77 @@ function ProblemCard({ p, index, voted, onVote, onOpen, variant }) {
   );
 }
 
-function DetailScreen({ problem: p, problems, setView, goToProblem }) {
-  const [voted, setVoted] = useState(false);
+function DetailScreen({ problem: p, problems, setView, goToProblem, userVotes, onVoteToggle, setSolutions: setGlobalSolutions }) {
+  const voted = userVotes.has(p.id);
   const [solutions, setSolutions] = useState([]);
   const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [shareMsg, setShareMsg] = useState('');
+  const [claimOpen, setClaimOpen] = useState(false);
+  const [claimForm, setClaimForm] = useState({ name: '', summary: '', stage: 'Planning' });
+  const [claimLoading, setClaimLoading] = useState(false);
+  const [claimError, setClaimError] = useState('');
+  const commentInputRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
       fetch(`/api/solutions?problemId=${p.id}`).then((r) => r.json()),
       fetch(`/api/comments?problemId=${p.id}`).then((r) => r.json()),
     ])
-      .then(([sols, comms]) => {
-        setSolutions(sols);
-        setComments(comms);
-      })
+      .then(([sols, comms]) => { setSolutions(sols); setComments(comms); })
       .catch(() => {});
   }, [p.id]);
 
+  const submitComment = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    setCommentLoading(true);
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ problemId: p.id, text: commentText }),
+      });
+      const newComment = await res.json();
+      if (res.ok) { setComments((c) => [...c, newComment]); setCommentText(''); }
+    } catch {}
+    setCommentLoading(false);
+  };
+
+  const handleShare = () => {
+    const url = `${window.location.origin}/problems?id=${p.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setShareMsg('Link copied!');
+      setTimeout(() => setShareMsg(''), 2000);
+    }).catch(() => {
+      setShareMsg('Copy failed');
+      setTimeout(() => setShareMsg(''), 2000);
+    });
+  };
+
+  const submitClaim = async (e) => {
+    e.preventDefault();
+    if (!claimForm.name.trim()) return;
+    setClaimLoading(true);
+    setClaimError('');
+    try {
+      const res = await fetch('/api/solutions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ problemId: p.id, ...claimForm }),
+      });
+      const newSol = await res.json();
+      if (!res.ok) { setClaimError(newSol.error || 'Failed to claim'); setClaimLoading(false); return; }
+      setSolutions((s) => [...s, newSol]);
+      if (setGlobalSolutions) setGlobalSolutions((s) => [...s, newSol]);
+      setClaimOpen(false);
+      setClaimForm({ name: '', summary: '', stage: 'Planning' });
+    } catch { setClaimError('Something went wrong'); }
+    setClaimLoading(false);
+  };
+
   const others = problems.filter((x) => x.id !== p.id).slice(0, 3);
-  const liveVotes = p.votes + (voted ? 1 : 0);
 
   return (
     <div className="mx-auto max-w-[1180px] pt-7">
@@ -868,10 +952,102 @@ function DetailScreen({ problem: p, problems, setView, goToProblem }) {
             <h2 className={cx(display, 'm-0 text-[32px] font-semibold')}>
               Who's <em className="italic text-[var(--signal)]">building</em>
             </h2>
-            <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={cx(ghostButton, 'px-3.5 py-[9px] text-[13px]')}>
+            <MotionButton
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+              className={cx(ghostButton, 'px-3.5 py-[9px] text-[13px]')}
+              onClick={() => setClaimOpen(true)}
+            >
               <Icon.Build /> Claim this problem
             </MotionButton>
           </div>
+
+          {/* Claim modal */}
+          <AnimatePresence>
+            {claimOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+                onClick={(e) => e.target === e.currentTarget && setClaimOpen(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.94, y: 20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.94, y: 20 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  className={cx(card, 'w-full max-w-[480px] p-7')}
+                >
+                  <h3 className={cx(display, 'm-0 mb-1 text-[22px]')}>Claim this problem</h3>
+                  <p className="mb-5 text-[13px] text-[var(--text-mute)]">Post a plan in public and start building.</p>
+                  <form onSubmit={submitClaim} className="flex flex-col gap-4">
+                    <div>
+                      <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">Solution / project name</label>
+                      <input
+                        value={claimForm.name}
+                        onChange={(e) => setClaimForm((f) => ({ ...f, name: e.target.value }))}
+                        placeholder="e.g. StreetlightWatch"
+                        required
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">Your plan (brief)</label>
+                      <textarea
+                        value={claimForm.summary}
+                        onChange={(e) => setClaimForm((f) => ({ ...f, summary: e.target.value }))}
+                        placeholder="What you're building and how."
+                        rows={3}
+                        className={cx(inputClass, 'resize-none')}
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">Stage</label>
+                      <div className="flex gap-2">
+                        {['Planning', 'Prototype', 'Building', 'Beta'].map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setClaimForm((f) => ({ ...f, stage: s }))}
+                            className={cx(
+                              'relative cursor-pointer rounded-full border px-3 py-1.5 text-[12px] font-medium',
+                              claimForm.stage === s
+                                ? 'border-[var(--text)] bg-[var(--text)] text-[var(--bg)]'
+                                : 'border-[var(--line-2)] text-[var(--text)]',
+                            )}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {claimError && <p className="text-[13px] text-[#FF4D2E]">{claimError}</p>}
+                    <div className="flex gap-2">
+                      <MotionButton
+                        whileHover={buttonHover}
+                        whileTap={buttonTap}
+                        type="submit"
+                        disabled={claimLoading}
+                        className={cx(signalButton, 'flex-1 justify-center disabled:opacity-60')}
+                      >
+                        {claimLoading ? 'Claiming…' : 'Claim it'}
+                      </MotionButton>
+                      <MotionButton
+                        whileHover={buttonHover}
+                        whileTap={buttonTap}
+                        type="button"
+                        onClick={() => setClaimOpen(false)}
+                        className={cx(ghostButton, 'px-4')}
+                      >
+                        Cancel
+                      </MotionButton>
+                    </div>
+                  </form>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {solutions.length === 0 ? (
             <motion.div
@@ -881,7 +1057,12 @@ function DetailScreen({ problem: p, problems, setView, goToProblem }) {
               className="rounded-[14px] border border-dashed border-[var(--line-2)] p-8 text-center text-[var(--text-mute)]"
             >
               <p className="m-0 mb-3.5 text-[15px]">No one has claimed this yet.</p>
-              <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={signalButton}>
+              <MotionButton
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+                className={signalButton}
+                onClick={() => setClaimOpen(true)}
+              >
                 Be the first <Icon.Arrow />
               </MotionButton>
             </motion.div>
@@ -924,6 +1105,27 @@ function DetailScreen({ problem: p, problems, setView, goToProblem }) {
           <h2 className={cx(display, 'm-0 mb-[18px] mt-12 text-[32px] font-semibold')}>
             Discussion · {comments.length} comments
           </h2>
+
+          {/* Comment form */}
+          <form onSubmit={submitComment} className="mb-5 flex gap-3">
+            <input
+              ref={commentInputRef}
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Add a comment…"
+              className={cx(inputClass, 'flex-1')}
+            />
+            <MotionButton
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+              type="submit"
+              disabled={commentLoading || !commentText.trim()}
+              className={cx(signalButton, 'px-4 disabled:opacity-50')}
+            >
+              Post
+            </MotionButton>
+          </form>
+
           {comments.length > 0 ? (
             <StaggerGroup className="flex flex-col gap-3.5" stagger={0.08} delay={0.1}>
               {comments.map((comment) => (
@@ -959,7 +1161,7 @@ function DetailScreen({ problem: p, problems, setView, goToProblem }) {
               whileTap={{ scale: 0.97 }}
               animate={voted ? { scale: [1, 1.04, 1] } : {}}
               transition={voted ? { duration: 0.4, ease: EASE_PUNCH } : { type: 'spring', stiffness: 400, damping: 22 }}
-              onClick={() => setVoted((v) => !v)}
+              onClick={() => onVoteToggle(p.id)}
               className={cx(
                 'mb-3.5 flex w-full cursor-pointer appearance-none items-center justify-center gap-3 rounded-xl border-0 px-[18px] py-5 font-[var(--sans)] text-base font-bold tracking-[-0.01em] transition-colors duration-200',
                 voted ? 'bg-[var(--signal)] text-[var(--signal-ink)]' : 'bg-[var(--text)] text-[var(--bg)]',
@@ -977,14 +1179,24 @@ function DetailScreen({ problem: p, problems, setView, goToProblem }) {
                   {voted ? 'Voted up' : 'Upvote this'}
                 </motion.span>
               </AnimatePresence>
-              · <LiveNumber value={liveVotes} />
+              · <LiveNumber value={p.votes} />
             </motion.button>
             <div className="grid grid-cols-2 gap-2">
-              <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={cx(ghostButton, 'justify-center px-0 py-[11px] text-[13px]')}>
+              <MotionButton
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+                className={cx(ghostButton, 'justify-center px-0 py-[11px] text-[13px]')}
+                onClick={() => { commentInputRef.current?.focus(); commentInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}
+              >
                 <Icon.Comment /> Comment
               </MotionButton>
-              <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={cx(ghostButton, 'justify-center px-0 py-[11px] text-[13px]')}>
-                <Icon.Share /> Share
+              <MotionButton
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+                className={cx(ghostButton, 'justify-center px-0 py-[11px] text-[13px]')}
+                onClick={handleShare}
+              >
+                <Icon.Share /> {shareMsg || 'Share'}
               </MotionButton>
             </div>
           </div>
@@ -1511,7 +1723,7 @@ function HubScreen({ problems, solutions, stats, goToProblem }) {
 function ProfileScreen({ goToProblem, setView }) {
   const { data: session } = useSession();
   const [user, setUser] = useState(null);
-  const [userProblem, setUserProblem] = useState(null);
+  const [userProblems, setUserProblems] = useState([]);
 
   const handle = session?.user?.handle || 'jadak';
 
@@ -1521,10 +1733,11 @@ function ProfileScreen({ goToProblem, setView }) {
       .then((u) => {
         setUser(u);
         if (u.reportedProblemIds?.length) {
-          fetch(`/api/problems/${u.reportedProblemIds[0]}`)
-            .then((r) => r.json())
-            .then(setUserProblem)
-            .catch(() => {});
+          Promise.all(
+            u.reportedProblemIds.map((id) =>
+              fetch(`/api/problems/${id}`).then((r) => r.json()).catch(() => null)
+            )
+          ).then((probs) => setUserProblems(probs.filter(Boolean)));
         }
       })
       .catch(() => {});
@@ -1596,24 +1809,29 @@ function ProfileScreen({ goToProblem, setView }) {
         <div>
           <h2 className={cx(display, 'm-0 mb-4 text-[26px] font-semibold')}>Your reports</h2>
           <StaggerGroup className="flex flex-col gap-2.5" stagger={0.08} delay={0.3}>
-            {userProblem && (
+            {userProblems.length === 0 && (
+              <div className="rounded-xl border border-dashed border-[var(--line-2)] p-6 text-center text-[13px] text-[var(--text-mute)]">
+                No problems reported yet.
+              </div>
+            )}
+            {userProblems.map((prob) => (
               <motion.div
-                key={userProblem.id}
+                key={prob.id}
                 variants={staggerItem}
                 whileHover={{ y: -2, borderColor: 'var(--line-2)' }}
                 className={cx(card, 'cursor-pointer p-[18px]')}
-                onClick={() => goToProblem(userProblem.id)}
+                onClick={() => goToProblem(prob.id)}
               >
-                <div className="mb-2 font-[var(--sans)] text-base font-semibold leading-[1.3]">{userProblem.title}</div>
+                <div className="mb-2 font-[var(--sans)] text-base font-semibold leading-[1.3]">{prob.title}</div>
                 <div className="flex gap-3.5 text-xs text-[var(--text-mute)]">
-                  <span>{userProblem.category}</span>
+                  <span>{prob.category}</span>
                   <span className={`${num} font-semibold text-[var(--signal)]`}>
-                    {userProblem.votes.toLocaleString()} ↑
+                    {prob.votes.toLocaleString()} ↑
                   </span>
-                  <span>{userProblem.solutionsCount} building</span>
+                  <span>{prob.solutionsCount} building</span>
                 </div>
               </motion.div>
-            )}
+            ))}
             <MotionButton
               whileHover={buttonHover}
               whileTap={buttonTap}
