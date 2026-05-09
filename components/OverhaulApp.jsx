@@ -14,11 +14,16 @@ const TWEAK_DEFAULTS = {
   variant: "data-heavy",
 };
 
-export function OverhaulApp() {
+export function OverhaulApp({
+  initialView = "landing",
+  initialProblemId = "p1",
+  onOpenPlatform,
+  onGoHome,
+}) {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const theme = t.dark ? "dark" : "light";
-  const [webView, setWebView] = useState("landing");
-  const [activeProblemId, setActiveProblemId] = useState("p1");
+  const [webView, setWebView] = useState(initialView);
+  const [activeProblemId, setActiveProblemId] = useState(initialProblemId);
 
   const goToProblem = (id) => {
     setActiveProblemId(id);
@@ -53,6 +58,8 @@ export function OverhaulApp() {
         goToProblem={goToProblem}
         tweaks={t}
         theme={theme}
+        onOpenPlatform={onOpenPlatform}
+        onGoHome={onGoHome}
       />
 
       <TweaksPanel>
