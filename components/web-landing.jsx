@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';  
+import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { motion, useInView, useMotionValue, useSpring, useTransform, useScroll, AnimatePresence } from 'framer-motion';
 import { OH_DATA } from './data';
 import { Icon } from './icons';
@@ -203,8 +204,19 @@ const buttonHover = { scale: 1.03 };
 const buttonTap = { scale: 0.97 };
 
 export function LandingPage({ onEnter }) {
-  const router = useRouter(); 
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const avatarRef = useRef(null);
   const D = OH_DATA;
+
+  // Close avatar dropdown on outside click
+  useEffect(() => {
+    if (!avatarOpen) return;
+    const handler = (e) => { if (avatarRef.current && !avatarRef.current.contains(e.target)) setAvatarOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [avatarOpen]);
 
   // Subtle parallax on the hero signal map
   const heroRef = useRef(null);
@@ -235,22 +247,14 @@ export function LandingPage({ onEnter }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-10 px-10 py-3.5">
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-10 px-10 py-3.5 ">
           <a href="/" className="flex items-center gap-3 text-[var(--text)] no-underline">
             <motion.div
               whileHover={{ rotate: 6, scale: 1.08 }}
               transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-              className="grid h-[34px] w-[34px] -rotate-6 place-items-center rounded-lg bg-[var(--signal)] shadow-[0_0_0_1px_var(--signal),0_8px_22px_rgba(255,214,10,0.25)]"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M5 18V8l7 7 7-7v10"
-                  stroke="#0D1B2A"
-                  strokeWidth="2.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              className="h-[34px] w-[34px]"
+            > 
+              <img src="/LogoWithBackground.jpeg" alt="OverHaul" className="h-full w-full object-contain rounded-sm" />
             </motion.div>
             <div className="flex flex-col leading-none">
               <span className="font-[var(--sans)] text-xl font-bold tracking-[-0.025em]">OverHaul</span>
@@ -277,14 +281,60 @@ export function LandingPage({ onEnter }) {
               </kbd>
             </MotionButton>
 
-            <MotionButton
-              whileHover={buttonHover}
-              whileTap={buttonTap}
-              className={`${ghostButton} px-3.5 py-[9px] text-[15px]`}
-              onClick={() => router.push('/auth/signin')}
-            >
-              Sign in
-            </MotionButton>
+            {session ? (
+              <div ref={avatarRef} className="relative">
+                <motion.div
+                  whileHover={{ scale: 1.08, rotate: 4 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+                  onClick={() => setAvatarOpen((o) => !o)}
+                  className="grid h-9 w-9 cursor-pointer place-items-center rounded-full border-2 border-[var(--line)] bg-[linear-gradient(135deg,#FFD60A,#FF4D2E)] text-sm font-bold text-[#0D1B2A]"
+                >
+                  {session.user?.initials || session.user?.name?.split(' ').map((n) => n[0]).join('').slice(0, 2) || '?'}
+                </motion.div>
+                <AnimatePresence>
+                  {avatarOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 top-full mt-2 z-50"
+                    >
+                      <div className={`${mono} rounded-[10px] border border-[var(--line)] bg-[var(--surface)] py-1 shadow-lg`}>
+                        {session.user?.name && (
+                          <div className="border-b border-[var(--line)] px-4 py-2 text-[12px] text-[var(--text-mute)]">
+                            {session.user.name}
+                          </div>
+                        )}
+                        <button
+                          onClick={() => { setAvatarOpen(false); router.push('/problems'); }}
+                          className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap border-0 bg-transparent px-4 py-2 text-left text-[13px] text-[var(--text)] hover:bg-[var(--surface-2)]"
+                        >
+                          Go to feed
+                        </button>
+                        <div className="mx-3 my-1 h-px bg-[var(--line)]" />
+                        <button
+                          onClick={() => { setAvatarOpen(false); signOut({ callbackUrl: '/' }); }}
+                          className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap border-0 bg-transparent px-4 py-2 text-left text-[13px] text-[#FF4D2E] hover:bg-[var(--surface-2)]"
+                        >
+                          Sign out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <MotionButton
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+                className={`${ghostButton} px-3.5 py-[9px] text-[15px]`}
+                onClick={() => router.push('/auth/signin')}
+              >
+                Sign in
+              </MotionButton>
+            )}
 
             <MotionButton
               whileHover={buttonHover}
@@ -482,62 +532,7 @@ export function LandingPage({ onEnter }) {
         </div>
       </section>
 
-      {/* What's broken right now */}
-      <section className="px-10 py-[120px]">
-        <div className={container}>
-          <div className="mb-14 flex flex-wrap items-end justify-between gap-10">
-            <Reveal>
-              <h2 className={`${display} m-0 max-w-[800px] text-[clamp(44px,6vw,84px)]`}>
-                What's <em className="italic text-[var(--signal)]">broken</em>
-                <br />
-                right now.
-              </h2>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={ghostButton} onClick={() => router.push('/problems')}>
-                See all 12,847 <Icon.Arrow />
-              </MotionButton>
-            </Reveal>
-          </div>
-
-          <StaggerGroup className="grid grid-cols-3 gap-4" stagger={0.07}>
-            {D.problems.slice(0, 6).map((problem) => (
-              <motion.article
-                key={problem.id}
-                variants={staggerItem}
-                whileHover={{ y: -6, transition: { type: 'spring', stiffness: 300, damping: 22 } }}
-                onClick={() => router.push('/problems')}
-                className="flex min-h-[260px] cursor-pointer flex-col rounded-[14px] border border-[var(--line)] bg-[var(--surface)] p-6 transition-[border-color] duration-150 hover:border-[var(--text)]"
-              >
-                <div className="mb-[18px] flex items-center justify-between">
-                  <span className={`${mono} text-[11px] uppercase tracking-[0.1em] text-[var(--text-mute)]`}>
-                    {problem.category} · {problem.location}
-                  </span>
-                  <span className="text-[11px] font-semibold text-[var(--signal)]">{problem.voteVelocity}</span>
-                </div>
-                <h3 className="m-0 flex-1 font-[var(--sans)] text-[22px] font-semibold leading-[1.18] tracking-[-0.02em] [text-wrap:balance]">
-                  {problem.title}
-                </h3>
-                <div className="mt-6 flex items-baseline justify-between border-t border-[var(--line)] pt-[18px]">
-                  <div>
-                    <div className={`${display} ${num} text-4xl font-bold leading-none tracking-[-0.03em]`}>
-                      <CountUp value={problem.votes.toLocaleString()} duration={1.4} />
-                    </div>
-                    <div className="mt-1 text-[11px] text-[var(--text-mute)]">upvotes · {problem.affected}</div>
-                  </div>
-                  <div
-                    className={`${mono} text-[11px] ${
-                      problem.solutionsCount > 0 ? 'text-[var(--signal)]' : 'text-[var(--text-mute)]'
-                    }`}
-                  >
-                    {problem.solutionsCount > 0 ? `${problem.solutionsCount} BUILDING` : 'UNCLAIMED'}
-                  </div>
-                </div>
-              </motion.article>
-            ))}
-          </StaggerGroup>
-        </div>
-      </section>
+      
 
       {/* For developers */}
       <section className="border-y border-[var(--line)] bg-[var(--bg-2)] px-10 py-[120px]">
@@ -556,16 +551,6 @@ export function LandingPage({ onEnter }) {
                 Browse problems sorted by upvote — real demand, real users waiting. Claim one, post a plan,
                 ship in public. Get visibility from the community that asked for it.
               </p>
-            </Reveal>
-            <Reveal delay={0.24}>
-              <div className="flex gap-3">
-                <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={signalButton}>
-                  Browse the dev hub <Icon.Arrow />
-                </MotionButton>
-                <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={ghostButton}>
-                  See trending devs
-                </MotionButton>
-              </div>
             </Reveal>
           </div>
 

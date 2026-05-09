@@ -360,17 +360,9 @@ function Sidebar({ view, setView, onGoHome, tags }) {
         <motion.div
           whileHover={{ rotate: -6, scale: 1.08 }}
           transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-          className="grid h-7 w-7 place-items-center rounded-md bg-[var(--signal)]"
+          className="h-7 w-7"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M5 18V8l7 7 7-7v10"
-              stroke="#0D1B2A"
-              strokeWidth="2.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <img src="/LogoWithBackground.jpeg" alt="OverHaul" className="h-full w-full object-contain rounded-sm" />
         </motion.div>
         <span className="font-[var(--sans)] text-[17px] font-semibold leading-none tracking-[-0.02em]">
           OverHaul
@@ -440,6 +432,16 @@ function Sidebar({ view, setView, onGoHome, tags }) {
 function TopBar({ search, setSearch, setView }) {
   const { data: session } = useSession();
   const initials = session?.user?.initials || session?.user?.name?.split(' ').map((n) => n[0]).join('').slice(0, 2) || '?';
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
 
   return (
     <motion.header
@@ -469,34 +471,48 @@ function TopBar({ search, setSearch, setView }) {
       <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={cx(ghostButton, 'px-3 py-[9px] text-[13px]')}>
         <Icon.Bell />
       </MotionButton>
-      <div className="relative group">
+      <div ref={menuRef} className="relative">
         <motion.div
           whileHover={{ scale: 1.08, rotate: 4 }}
           whileTap={{ scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 400, damping: 18 }}
-          onClick={() => setView('profile')}
+          onClick={() => setMenuOpen((o) => !o)}
           className="grid h-9 w-9 cursor-pointer place-items-center rounded-full border-2 border-[var(--bg)] bg-[linear-gradient(135deg,#FFD60A,#FF4D2E)] text-sm font-bold text-[#0D1B2A]"
         >
           {initials}
         </motion.div>
-        {/* Sign-out dropdown */}
-        <div className="absolute right-0 top-full mt-2 hidden group-hover:block">
-          <div className={`${mono} rounded-[10px] border border-[var(--line)] bg-[var(--surface)] py-1 shadow-lg`}>
-            <button
-              onClick={() => setView('profile')}
-              className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap border-0 bg-transparent px-4 py-2 text-left text-[13px] text-[var(--text)] hover:bg-[var(--surface-2)]"
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -4 }}
+              transition={{ duration: 0.15, ease: EASE_OUT }}
+              className="absolute right-0 top-full mt-2 z-50"
             >
-              Profile
-            </button>
-            <div className="mx-3 my-1 h-px bg-[var(--line)]" />
-            <button
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap border-0 bg-transparent px-4 py-2 text-left text-[13px] text-[#FF4D2E] hover:bg-[var(--surface-2)]"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
+              <div className={`${mono} rounded-[10px] border border-[var(--line)] bg-[var(--surface)] py-1 shadow-lg`}>
+                {session?.user?.name && (
+                  <div className="px-4 py-2 text-[12px] text-[var(--text-mute)] border-b border-[var(--line)]">
+                    {session.user.name}
+                  </div>
+                )}
+                <button
+                  onClick={() => { setMenuOpen(false); setView('profile'); }}
+                  className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap border-0 bg-transparent px-4 py-2 text-left text-[13px] text-[var(--text)] hover:bg-[var(--surface-2)]"
+                >
+                  Profile
+                </button>
+                <div className="mx-3 my-1 h-px bg-[var(--line)]" />
+                <button
+                  onClick={() => { setMenuOpen(false); signOut({ callbackUrl: '/' }); }}
+                  className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap border-0 bg-transparent px-4 py-2 text-left text-[13px] text-[#FF4D2E] hover:bg-[var(--surface-2)]"
+                >
+                  Sign out
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.header>
   );
@@ -643,12 +659,11 @@ function FeedScreen({ problems, categories, activeCat, setActiveCat, goToProblem
           </StaggerGroup>
         </RailCard>
 
-        <RailCard title="The pledge" eyebrow="Read · 2 min" delay={0.35}>
+        <RailCard title="Our mission" eyebrow="Why it matters" delay={0.35}>
           <p className="m-0 mb-3 text-[13px] leading-normal text-[var(--text-mute)]">
             We don't sell complaints. We don't sell attention. We sell time saved for people who want to fix
             things.
           </p>
-          <a className="text-xs font-semibold text-[var(--signal)]">Read the manifesto →</a>
         </RailCard>
       </aside>
     </div>
@@ -1781,9 +1796,6 @@ function ProfileScreen({ goToProblem, setView }) {
             {user.joinedLabel} · {user.location} · {user.bio}
           </div>
         </div>
-        <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={cx(ghostButton, 'ml-auto')}>
-          Edit profile
-        </MotionButton>
       </motion.div>
 
       <StaggerGroup
