@@ -24,3 +24,138 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* OverHaul prototype styles */
+:root{
+    /* Deep Sea palette */
+    --navy-1: #07111c;     /* deepest */
+    --navy-2: #0D1B2A;     /* main bg */
+    --navy-3: #1B263B;     /* surface */
+    --navy-4: #243349;     /* surface raised */
+    --steel:  #415A77;     /* card */
+    --mute:   #778DA9;     /* muted text */
+    --bone:   #E0E1DD;     /* main text */
+    --paper:  #F4F4EE;     /* light bg */
+    --ink:    #0D1B2A;     /* light text */
+
+    /* Activist accent — civic signal yellow */
+    --signal: #FFD60A;
+    --signal-ink: #0D1B2A;
+    --hot: #FF4D2E;        /* used sparingly for "trending hot" */
+
+    /* Type */
+    --sans: 'General Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+    /* Density (overridden by tweak) */
+    --pad-y: 22px;
+    --pad-x: 26px;
+    --gap:   18px;
+    --radius: 14px;
+  }
+
+  /* ── Dark theme (default — activist) ────────────────────────────────── */
+  [data-theme="dark"]{
+    --bg:      var(--navy-2);
+    --bg-2:    var(--navy-1);
+    --surface: var(--navy-3);
+    --surface-2: var(--navy-4);
+    --line:    rgba(224,225,221,0.10);
+    --line-2:  rgba(224,225,221,0.18);
+    --text:    var(--bone);
+    --text-mute: var(--mute);
+    --text-strong: #FFFFFF;
+  }
+  [data-theme="light"]{
+    --bg:      var(--paper);
+    --bg-2:    #FFFFFF;
+    --surface: #FFFFFF;
+    --surface-2: #FAFAF4;
+    --line:    rgba(13,27,42,0.10);
+    --line-2:  rgba(13,27,42,0.18);
+    --text:    var(--ink);
+    --text-mute: #41506B;
+    --text-strong: #000000;
+  }
+
+  /* Density */
+  [data-density="compact"]{ --pad-y: 14px; --pad-x: 18px; --gap: 12px; }
+  [data-density="comfortable"]{ --pad-y: 22px; --pad-x: 26px; --gap: 18px; }
+
+  *{ box-sizing: border-box; }
+  html, body{ margin: 0; padding: 0; }
+  body{
+    font-family: var(--sans);
+    background: #050a12;     /* shell behind both views */
+    color: var(--bone);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  button{ font-family: inherit; }
+  a{ color: inherit; text-decoration: none; }
+
+  /* Stage holders */
+  #web-stage{ display: none; }
+  #web-stage.show{ display: block; }
+
+  /* Utility classes used inside React */
+  .mono{ font-family: var(--mono); font-feature-settings: "ss01"; }
+  .num{ font-variant-numeric: tabular-nums; }
+
+  /* Typography helpers */
+  .display{
+    font-family: var(--sans);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+    text-wrap: balance;
+  }
+  .display.italic{ font-style: italic; font-weight: 500; }
+
+  .eyebrow{
+    font: 500 11px/1 var(--mono);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-mute);
+  }
+
+  ::selection{ background: var(--signal); color: var(--signal-ink); }
+
+  /* Card */
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  /* Buttons */
+  .btn{
+    appearance: none; border: 0; cursor: pointer;
+    font: 600 14px/1 var(--sans); letter-spacing: -0.005em;
+    padding: 13px 18px; border-radius: 10px;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: transform .12s ease, background .15s ease, color .15s ease;
+  }
+  .btn:active{ transform: translateY(1px); }
+  .btn-signal{ background: var(--signal); color: var(--signal-ink); }
+  .btn-signal:hover{ background: #FFE54B; }
+  .btn-ghost{ background: transparent; color: var(--text); border: 1px solid var(--line-2); }
+  .btn-ghost:hover{ border-color: var(--text); }
+  .btn-solid{ background: var(--text); color: var(--bg); }
+
+  /* Hairline divider */
+  .hr{ height: 1px; background: var(--line); border: 0; }
+
+  /* Web shell */
+  .web-shell{
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Scrollbar (subtle) */
+  ::-webkit-scrollbar{ width: 12px; height: 12px; }
+  ::-webkit-scrollbar-thumb{ background: rgba(119,141,169,0.25); border-radius: 8px;
+                             border: 3px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover{ background: rgba(119,141,169,0.45); border: 3px solid transparent; background-clip: content-box; }
