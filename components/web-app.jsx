@@ -281,7 +281,7 @@ function AppShell({ view, setView, activeProblemId, goToProblem, tweaks, onGoHom
     <div className="grid min-h-screen grid-cols-1 bg-[var(--bg)] pb-20 text-[var(--text)] lg:grid-cols-[240px_1fr] lg:pb-0">
       <Sidebar view={view} setView={setView} onGoHome={onGoHome} tags={tags} />
       <div className="flex min-w-0 flex-col">
-        <TopBar search={search} setSearch={setSearch} setView={setView} />
+        <TopBar search={search} setSearch={setSearch} setView={setView} onGoHome={onGoHome} />
         <main className="min-w-0 flex-1 px-4 pb-[60px] sm:px-6 lg:px-9">
           <AnimatePresence mode="wait">
             <motion.div
@@ -429,7 +429,7 @@ function Sidebar({ view, setView, onGoHome, tags }) {
   );
 }
 
-function TopBar({ search, setSearch, setView }) {
+function TopBar({ search, setSearch, setView, onGoHome }) {
   const { data: session } = useSession();
   const initials = session?.user?.initials || session?.user?.name?.split(' ').map((n) => n[0]).join('').slice(0, 2) || '?';
   const [menuOpen, setMenuOpen] = useState(false);
@@ -450,6 +450,16 @@ function TopBar({ search, setSearch, setView }) {
       transition={{ duration: 0.5, ease: EASE_OUT, delay: 0.1 }}
       className="sticky top-0 z-40 flex items-center gap-3 border-b border-[var(--line)] bg-[var(--bg)] px-4 py-4 sm:gap-[18px] sm:px-6 lg:px-9 lg:py-5"
     >
+      <motion.button
+        whileHover={{ rotate: -4, scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
+        type="button"
+        aria-label="Go home"
+        onClick={() => (onGoHome ? onGoHome() : setView('landing'))}
+        className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-[10px] border border-[var(--line)] bg-[var(--surface)] p-0 lg:hidden"
+      >
+        <img src="/LogoWithBackground.jpeg" alt="" className="h-7 w-7 rounded-sm object-contain" />
+      </motion.button>
       <motion.div
         whileFocusWithin={{ borderColor: 'var(--text)' }}
         className="flex min-w-0 max-w-[540px] flex-1 items-center gap-2.5 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] px-3.5 py-[11px] transition-colors duration-150 focus-within:border-[var(--text-mute)]"
@@ -468,7 +478,7 @@ function TopBar({ search, setSearch, setView }) {
         </span>
       </motion.div>
       <div className="hidden flex-1 sm:block" />
-      <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={cx(ghostButton, 'px-3 py-[9px] text-[13px]')}>
+      <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={cx(ghostButton, 'hidden px-3 py-[9px] text-[13px] sm:inline-flex')}>
         <Icon.Bell />
       </MotionButton>
       <div ref={menuRef} className="relative">

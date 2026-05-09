@@ -395,14 +395,14 @@ export function LandingPage({ onEnter }) {
               initial={{ opacity: 0, scale: 0.92, rotate: 2 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               transition={{ duration: 1, ease: EASE_OUT, delay: 0.5 }}
-              className="relative min-h-[320px] overflow-hidden rounded-[20px] border border-white/15 bg-[rgba(255,214,10,0.6)] shadow-[0_34px_100px_rgba(0,0,0,0.38),0_0_80px_rgba(255,214,10,0.13)] sm:min-h-[430px] sm:rounded-[28px]"
+              className="relative min-h-[360px] overflow-hidden rounded-[20px] border border-white/15 bg-[rgba(255,214,10,0.6)] shadow-[0_34px_100px_rgba(0,0,0,0.38),0_0_80px_rgba(255,214,10,0.13)] sm:min-h-[430px] sm:rounded-[28px]"
             >
               <div className="absolute inset-3 grid grid-rows-[auto_1fr_auto] rounded-[16px] bg-[rgba(7,17,28,0.82)] p-4 text-[#E0E1DD] [backdrop-filter:blur(16px)_saturate(160%)] sm:inset-[18px] sm:rounded-[20px] sm:p-6">
                 <div className={`${mono} text-xs uppercase tracking-[0.14em] text-[var(--signal)]`}>
                   Civic signal map
                 </div>
                 <motion.div
-                  className="grid grid-cols-1 gap-3 self-center min-[420px]:grid-cols-2"
+                  className="grid grid-cols-2 gap-2 self-center sm:gap-3"
                   initial="hidden"
                   animate="show"
                   variants={{
@@ -416,12 +416,12 @@ export function LandingPage({ onEnter }) {
                       variants={staggerItem}
                       whileHover={{ y: -3, scale: 1.03 }}
                       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                      className="rounded-[14px] border border-white/10 bg-white/10 p-4"
+                      className="rounded-[14px] border border-white/10 bg-white/10 p-3 sm:p-4"
                     >
-                      <div className={`${mono} ${colorClass} text-[26px] font-bold`}>
+                      <div className={`${mono} ${colorClass} text-[22px] font-bold sm:text-[26px]`}>
                         <CountUp value={value} duration={1.4} />
                       </div>
-                      <div className="mt-1.5 text-[13px] text-[rgba(224,225,221,0.7)]">{label}</div>
+                      <div className="mt-1.5 text-[12px] text-[rgba(224,225,221,0.7)] sm:text-[13px]">{label}</div>
                     </motion.div>
                   ))}
                 </motion.div>
