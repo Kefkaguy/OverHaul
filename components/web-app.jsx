@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { useSession, signOut } from 'next-auth/react';
 import { Icon } from './icons';
 import { LandingPage } from './web-landing';
 
@@ -149,6 +150,7 @@ export function WebApp({ view, setView, activeProblemId, goToProblem, tweaks, th
 }
 
 function AppShell({ view, setView, activeProblemId, goToProblem, tweaks, onGoHome }) {
+  const { data: session } = useSession();
   const [problems, setProblems] = useState([]);
   const [feedCategories, setFeedCategories] = useState([]);
   const [submitCategories, setSubmitCategories] = useState([]);
@@ -201,11 +203,14 @@ function AppShell({ view, setView, activeProblemId, goToProblem, tweaks, onGoHom
     const category = form.cat.trim() || 'Local';
     const location = form.loc.trim() || 'Citywide';
     const description = form.desc.trim();
+    const reporter = session?.user
+      ? { name: session.user.name, handle: session.user.handle || session.user.email?.split('@')[0], age: null }
+      : { name: 'Anonymous', handle: 'anon', age: null };
     try {
       const res = await fetch('/api/problems', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, category, location, description }),
+        body: JSON.stringify({ title, category, location, description, reporter }),
       });
       const newProblem = await res.json();
       setProblems((current) => [newProblem, ...current]);
@@ -215,7 +220,7 @@ function AppShell({ view, setView, activeProblemId, goToProblem, tweaks, onGoHom
       const newProblem = {
         id, title, category, location,
         reportedAgo: 'just now',
-        reporter: { name: 'Jada Kim', handle: 'jadak', age: 22 },
+        reporter,
         votes: 1, voteVelocity: '+1 this week',
         affected: 'Needs review', status: 'Open · Newly reported',
         solutionsCount: 0, duplicates: 1,
@@ -401,6 +406,9 @@ function Sidebar({ view, setView, onGoHome, tags }) {
 }
 
 function TopBar({ search, setSearch, setView }) {
+  const { data: session } = useSession();
+  const initials = session?.user?.initials || session?.user?.name?.split(' ').map((n) => n[0]).join('').slice(0, 2) || '?';
+
   return (
     <motion.header
       initial={{ y: -40, opacity: 0 }}
@@ -429,15 +437,35 @@ function TopBar({ search, setSearch, setView }) {
       <MotionButton whileHover={buttonHover} whileTap={buttonTap} className={cx(ghostButton, 'px-3 py-[9px] text-[13px]')}>
         <Icon.Bell />
       </MotionButton>
-      <motion.div
-        whileHover={{ scale: 1.08, rotate: 4 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 18 }}
-        onClick={() => setView('profile')}
-        className="grid h-9 w-9 cursor-pointer place-items-center rounded-full border-2 border-[var(--bg)] bg-[linear-gradient(135deg,#FFD60A,#FF4D2E)] text-sm font-bold text-[#0D1B2A]"
-      >
-        JK
-      </motion.div>
+      <div className="relative group">
+        <motion.div
+          whileHover={{ scale: 1.08, rotate: 4 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+          onClick={() => setView('profile')}
+          className="grid h-9 w-9 cursor-pointer place-items-center rounded-full border-2 border-[var(--bg)] bg-[linear-gradient(135deg,#FFD60A,#FF4D2E)] text-sm font-bold text-[#0D1B2A]"
+        >
+          {initials}
+        </motion.div>
+        {/* Sign-out dropdown */}
+        <div className="absolute right-0 top-full mt-2 hidden group-hover:block">
+          <div className={`${mono} rounded-[10px] border border-[var(--line)] bg-[var(--surface)] py-1 shadow-lg`}>
+            <button
+              onClick={() => setView('profile')}
+              className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap border-0 bg-transparent px-4 py-2 text-left text-[13px] text-[var(--text)] hover:bg-[var(--surface-2)]"
+            >
+              Profile
+            </button>
+            <div className="mx-3 my-1 h-px bg-[var(--line)]" />
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap border-0 bg-transparent px-4 py-2 text-left text-[13px] text-[#FF4D2E] hover:bg-[var(--surface-2)]"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
     </motion.header>
   );
 }
@@ -1481,11 +1509,14 @@ function HubScreen({ problems, solutions, stats, goToProblem }) {
 }
 
 function ProfileScreen({ goToProblem, setView }) {
+  const { data: session } = useSession();
   const [user, setUser] = useState(null);
   const [userProblem, setUserProblem] = useState(null);
 
+  const handle = session?.user?.handle || 'jadak';
+
   useEffect(() => {
-    fetch('/api/users/jadak')
+    fetch(`/api/users/${handle}`)
       .then((r) => r.json())
       .then((u) => {
         setUser(u);
@@ -1497,7 +1528,7 @@ function ProfileScreen({ goToProblem, setView }) {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [handle]);
 
   if (!user) {
     return (

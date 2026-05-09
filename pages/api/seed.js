@@ -197,6 +197,9 @@ const seedUsers = [
     handle: 'jadak',
     name: 'Jada Kim',
     initials: 'JK',
+    email: 'jada@overhaul.city',
+    // password: overhaul2026
+    passwordHash: '$2b$12$6nHQQx.QHGMCJWoUO1SW2O8Y7U0.4PiVGorYey89LrkzE4lXWNiJ.',
     age: 22,
     location: 'East Oakland',
     joinedLabel: 'Joined March 2026',

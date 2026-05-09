@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { title, category, location, description } = req.body;
+    const { title, category, location, description, reporter } = req.body;
     const id = `user-${Date.now()}`;
     const newProblem = {
       id,
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       category: category || 'Local',
       location: location || 'Citywide',
       reportedAgo: 'just now',
-      reporter: { name: 'Jada Kim', handle: 'jadak', age: 22 },
+      reporter: reporter || { name: 'Anonymous', handle: 'anon', age: null },
       votes: 1,
       voteVelocity: '+1 this week',
       affected: 'Needs review',
